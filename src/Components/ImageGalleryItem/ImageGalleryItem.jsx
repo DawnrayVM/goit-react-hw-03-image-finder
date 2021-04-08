@@ -1,4 +1,4 @@
-const ImageGalleryItem = () => {
+const ImageGalleryItem = ({ src, alt }) => {
     return (
         <li className="ImageGalleryItem">
             <img src="" alt="" className="ImageGalleryItem-image" />
