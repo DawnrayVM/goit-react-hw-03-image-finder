@@ -1,7 +1,12 @@
 import { createUseStyles } from 'react-jss';
 
 const useStyles = createUseStyles({
-    container: { display: 'block', height: 15, textAlign: 'center' },
+    container: {
+        display: 'block',
+        // height: 15,
+        textAlign: 'center',
+        // marginBottom: 10,
+    },
     button: {
         padding: '8px 16px',
         borderRadius: 2,
@@ -18,6 +23,7 @@ const useStyles = createUseStyles({
         fontStyle: 'normal',
         fontWeight: 500,
         minWidth: 180,
+
         boxShadow:
             '0px 3px 1px -2px rgba(0, 0, 0, 0.2), 0px 2px 2px 0px rgba(0, 0, 0, 0.14), 0px 1px 5px 0px rgba(0, 0, 0, 0.12)',
         '&:hover': { backgroundColor: '#303f9f' },

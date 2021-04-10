@@ -5,20 +5,49 @@ import Searchbar from './Components/Searchbar';
 import pixabayAPI from './services/image-finder-api';
 import Button from './Components/Button';
 import ImageGallery from './Components/ImageGallery';
+import Modal from './Components/Modal';
 
 class App extends Component {
     state = {
         images: [],
         query: '',
-        activeImageIdx: '',
+        page: 1,
+        activeImage: '',
         activeModal: false,
         loading: false,
     };
 
-    queryHandler = (wordToFind, page) => {
-        this.setState({ query: wordToFind });
+    getMoreImages = () => {
+        pixabayAPI
+            .fetchImages(this.state.query, this.state.page)
+            .then(hits => {
+                const filteredData = hits.map(
+                    ({ id, webformatURL, largeImageURL, tags }) => ({
+                        id,
+                        webformatURL,
+                        largeImageURL,
+                        tags,
+                    }),
+                );
+                this.setState(prevState => ({
+                    images: [...prevState.images, ...filteredData],
+                    page: prevState.page + 1,
+                }));
+
+                this.spinnerToggle();
+            })
+            .catch(error => console.log('this is an error', error))
+            .finally(this.spinnerToggle());
+        // window.scrollTo({
+        //     top: document.body.offsetHeight,
+        //     behavior: 'smooth',
+        // });
+        console.log(document.body.offsetHeight);
     };
 
+    queryHandler = wordToFind => {
+        this.setState({ query: wordToFind });
+    };
     getImages = () => {
         pixabayAPI
             .fetchImages(this.state.query)
@@ -32,7 +61,10 @@ class App extends Component {
                             tags,
                         }),
                     );
-                    this.setState({ images: [...filteredData] });
+                    this.setState(prevState => ({
+                        images: [...filteredData],
+                        page: prevState.page + 1,
+                    }));
                 } else {
                     this.setState({ images: [] });
                     //PLACE FOR RENDER NO IMAGES FOUND
@@ -42,25 +74,23 @@ class App extends Component {
             .catch(error => console.log('this is an error', error))
             .finally(this.spinnerToggle());
     };
-
     spinnerToggle = () => {
         this.setState(prevState => ({ loading: !prevState.loading }));
     };
-
     submitHandler = e => {
         e.preventDefault();
-
         this.state.query ? this.getImages() : this.setState({ images: [] });
     };
-
     modalToggle = () => {
         this.setState(prevState => ({ activeModal: !prevState.activeModal }));
     };
-
     activeImageIdxHandler = e => {
-        console.dir(e.target.dataset.src);
-        this.setState({ activeImageIdx: e.target.dataset.src });
+        this.setState({ activeImage: e.target.dataset.src });
         this.modalToggle();
+    };
+
+    modalCloseHandler = e => {
+        e.target === e.currentTarget && this.modalToggle();
     };
 
     render() {
@@ -85,8 +115,22 @@ class App extends Component {
                     images={this.state.images}
                     getImageIdx={this.activeImageIdxHandler}
                 >
-                    <Button />
+                    {this.state.loading ? (
+                        <PropagateLoader
+                            css={override}
+                            size={20}
+                            color={'#3f51b5'}
+                        />
+                    ) : (
+                        <Button onClick={this.getMoreImages} />
+                    )}
                 </ImageGallery>
+                {this.state.activeModal && (
+                    <Modal
+                        activeimage={this.state.activeImage}
+                        onClick={this.modalCloseHandler}
+                    />
+                )}
             </div>
         );
     }
