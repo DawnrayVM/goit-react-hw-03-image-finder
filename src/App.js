@@ -17,6 +17,23 @@ class App extends Component {
         loading: false,
     };
 
+    scrollToEnd = () => {
+        const scrollHeight = Math.max(
+            document.body.scrollHeight,
+            document.documentElement.scrollHeight,
+            document.body.offsetHeight,
+            document.documentElement.offsetHeight,
+            document.body.clientHeight,
+            document.documentElement.clientHeight,
+        );
+        setTimeout(() => {
+            window.scrollTo({
+                top: scrollHeight - 140,
+                behavior: 'smooth',
+            });
+        }, 350);
+    };
+
     getMoreImages = () => {
         pixabayAPI
             .fetchImages(this.state.query, this.state.page)
@@ -38,11 +55,7 @@ class App extends Component {
             })
             .catch(error => console.log('this is an error', error))
             .finally(this.spinnerToggle());
-        // window.scrollTo({
-        //     top: document.body.offsetHeight,
-        //     behavior: 'smooth',
-        // });
-        console.log(document.body.offsetHeight);
+        this.scrollToEnd();
     };
 
     queryHandler = wordToFind => {

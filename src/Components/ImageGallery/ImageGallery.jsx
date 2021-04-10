@@ -6,7 +6,7 @@ const useStyles = createUseStyles({
         display: 'grid',
         maxWidth: 'calc(100vw - 48px)',
         gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
-        gridGap: 16,
+        gridGap: 15,
         margin: { top: 0, bottom: 0, left: 'auto', right: 'auto' },
         padding: 0,
         listStyle: 'none',
@@ -18,7 +18,7 @@ const ImageGallery = ({ images, children, getImageIdx }) => {
     return (
         images.length > 0 && (
             <>
-                <ul className={classes.imageGallery} id="gallery">
+                <ul className={classes.imageGallery}>
                     <ImageGalleryItem
                         images={images}
                         getImageIdx={getImageIdx}

@@ -12,6 +12,7 @@ const useStyles = createUseStyles({
         justifyContent: 'center',
         alignItems: 'center',
         minHeight: 64,
+        width: '100%',
         padding: { right: 24, left: 24, top: 12, bottom: 12 },
         color: '#fff',
         backgroundColor: '#3f51b5',
