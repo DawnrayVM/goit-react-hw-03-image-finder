@@ -6,7 +6,7 @@ const options = {
     key: '20341451-3d1090cbc297b1fd4b3b8fcd1',
 };
 
-const fetchImages = (query, page = 1) => {
+const fetchImages = (query, page) => {
     const { url, perPage, key } = options;
     return axios
         .get(

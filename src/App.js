@@ -1,8 +1,8 @@
 import React, { Component } from 'react';
 import { css } from '@emotion/core';
 import PropagateLoader from 'react-spinners/PropagateLoader';
-import SearchBar from './Components/Searchbar';
 import pixabayAPI from './services/image-finder-api';
+import SearchBar from './Components/Searchbar';
 import Button from './Components/Button';
 import ImageGallery from './Components/ImageGallery';
 import Modal from './Components/Modal';
@@ -51,25 +51,26 @@ class App extends Component {
         });
     };
     findImages = () => {
-        pixabayAPI
-            .fetchImages(this.state.searchQuery, this.state.page)
-            .then(hits => {
-                const filteredHits = hits.map(
-                    ({ id, webformatURL, largeImageURL, tags }) => ({
-                        id,
-                        webformatURL,
-                        largeImageURL,
-                        tags,
-                    }),
-                );
-                this.setState({
-                    images: [...filteredHits],
-                    page: this.state.page + 1,
-                });
-                this.spinnerToggle();
-            })
-            .catch(console.log)
-            .finally(this.spinnerToggle());
+        this.state.searchQuery &&
+            pixabayAPI
+                .fetchImages(this.state.searchQuery, this.state.page)
+                .then(hits => {
+                    const filteredHits = hits.map(
+                        ({ id, webformatURL, largeImageURL, tags }) => ({
+                            id,
+                            webformatURL,
+                            largeImageURL,
+                            tags,
+                        }),
+                    );
+                    this.setState({
+                        images: [...filteredHits],
+                        page: this.state.page + 1,
+                    });
+                    this.spinnerToggle();
+                })
+                .catch(console.log)
+                .finally(this.spinnerToggle());
     };
 
     getMoreImages = () => {
@@ -127,7 +128,13 @@ class App extends Component {
             margin: 0 auto;
             border-color: red;
         `;
-        const { loading, images, activeImage, activeModal } = this.state;
+        const {
+            loading,
+            images,
+            activeImage,
+            activeModal,
+            searchQuery,
+        } = this.state;
         return (
             <div className="App">
                 <SearchBar onSubmit={this.submitHandler} />
@@ -152,6 +159,7 @@ class App extends Component {
                         <Button onClick={this.getMoreImages} />
                     )}
                 </ImageGallery>
+
                 {activeModal && (
                     <Modal
                         activeimage={activeImage}

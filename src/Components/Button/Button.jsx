@@ -3,9 +3,7 @@ import { createUseStyles } from 'react-jss';
 const useStyles = createUseStyles({
     container: {
         display: 'block',
-        // height: 15,
         textAlign: 'center',
-        // marginBottom: 10,
     },
     button: {
         padding: '8px 16px',
