@@ -1,7 +1,7 @@
-import { Component } from 'react';
+import React, { Component } from 'react';
 import { css } from '@emotion/core';
 import PropagateLoader from 'react-spinners/PropagateLoader';
-import Searchbar from './Components/Searchbar';
+import SearchBar from './Components/Searchbar';
 import pixabayAPI from './services/image-finder-api';
 import Button from './Components/Button';
 import ImageGallery from './Components/ImageGallery';
@@ -10,35 +10,75 @@ import Modal from './Components/Modal';
 class App extends Component {
     state = {
         images: [],
-        query: '',
+        searchQuery: '',
         page: 1,
         activeImage: '',
         activeModal: false,
         loading: false,
+        scrollValue: 0,
     };
 
-    scrollToEnd = () => {
-        const scrollHeight = Math.max(
-            document.body.scrollHeight,
-            document.documentElement.scrollHeight,
-            document.body.offsetHeight,
-            document.documentElement.offsetHeight,
-            document.body.clientHeight,
-            document.documentElement.clientHeight,
-        );
-        setTimeout(() => {
+    getSnapshotBeforeUpdate(prevProps, prevState) {
+        if (prevState.images.length < this.state.images.length) {
+            const list = document.querySelector('.App');
+            return list.scrollHeight - list.scrollTop;
+        }
+        return null;
+    }
+
+    componentDidUpdate(prevState, prevProps, snapshot) {
+        if (prevProps.searchQuery !== this.state.searchQuery) {
+            this.findImages();
+        }
+
+        if (snapshot !== null) {
             window.scrollTo({
-                top: scrollHeight - 140,
+                top: snapshot - 105,
                 behavior: 'smooth',
             });
-        }, 350);
+        }
+    }
+
+    setDefaultState = () => {
+        this.setState({
+            images: [],
+            searchQuery: '',
+            page: 1,
+            activeImage: '',
+            activeModal: false,
+            loading: false,
+            scrollValue: 0,
+        });
+    };
+    findImages = () => {
+        pixabayAPI
+            .fetchImages(this.state.searchQuery, this.state.page)
+            .then(hits => {
+                const filteredHits = hits.map(
+                    ({ id, webformatURL, largeImageURL, tags }) => ({
+                        id,
+                        webformatURL,
+                        largeImageURL,
+                        tags,
+                    }),
+                );
+                this.setState({
+                    images: [...filteredHits],
+                    page: this.state.page + 1,
+                });
+                this.spinnerToggle();
+            })
+            .catch(console.log)
+            .finally(this.spinnerToggle());
     };
 
     getMoreImages = () => {
+        const { searchQuery, page } = this.state;
+
         pixabayAPI
-            .fetchImages(this.state.query, this.state.page)
+            .fetchImages(searchQuery, page)
             .then(hits => {
-                const filteredData = hits.map(
+                const filteredHits = hits.map(
                     ({ id, webformatURL, largeImageURL, tags }) => ({
                         id,
                         webformatURL,
@@ -47,57 +87,32 @@ class App extends Component {
                     }),
                 );
                 this.setState(prevState => ({
-                    images: [...prevState.images, ...filteredData],
-                    page: prevState.page + 1,
+                    images: [...prevState.images, ...filteredHits],
+                    page: page + 1,
                 }));
-
                 this.spinnerToggle();
             })
-            .catch(error => console.log('this is an error', error))
+            .catch(console.log)
             .finally(this.spinnerToggle());
-        this.scrollToEnd();
     };
 
-    queryHandler = wordToFind => {
-        this.setState({ query: wordToFind });
+    submitHandler = inputValue => {
+        if (this.state.searchQuery !== inputValue) {
+            this.setDefaultState();
+            this.setState({ searchQuery: inputValue });
+        }
     };
-    getImages = () => {
-        pixabayAPI
-            .fetchImages(this.state.query)
-            .then(hits => {
-                if (hits.length > 0) {
-                    const filteredData = hits.map(
-                        ({ id, webformatURL, largeImageURL, tags }) => ({
-                            id,
-                            webformatURL,
-                            largeImageURL,
-                            tags,
-                        }),
-                    );
-                    this.setState(prevState => ({
-                        images: [...filteredData],
-                        page: prevState.page + 1,
-                    }));
-                } else {
-                    this.setState({ images: [] });
-                    //PLACE FOR RENDER NO IMAGES FOUND
-                }
-                this.spinnerToggle();
-            })
-            .catch(error => console.log('this is an error', error))
-            .finally(this.spinnerToggle());
-    };
+
     spinnerToggle = () => {
-        this.setState(prevState => ({ loading: !prevState.loading }));
+        this.setState(prevState => {
+            return { loading: !prevState.loading };
+        });
     };
-    submitHandler = e => {
-        e.preventDefault();
-        this.state.query ? this.getImages() : this.setState({ images: [] });
-    };
+
     modalToggle = () => {
         this.setState(prevState => ({ activeModal: !prevState.activeModal }));
     };
-    activeImageIdxHandler = e => {
+    activeImageHandler = e => {
         this.setState({ activeImage: e.target.dataset.src });
         this.modalToggle();
     };
@@ -112,23 +127,22 @@ class App extends Component {
             margin: 0 auto;
             border-color: red;
         `;
+        const { loading, images, activeImage, activeModal } = this.state;
         return (
             <div className="App">
-                <Searchbar
-                    query={this.queryHandler}
-                    onSubmit={this.submitHandler}
-                />
-                <PropagateLoader
-                    css={override}
-                    size={20}
-                    color={'#3f51b5'}
-                    loading={this.state.loading}
-                />
+                <SearchBar onSubmit={this.submitHandler} />
+                {loading && images.length === 0 && (
+                    <PropagateLoader
+                        css={override}
+                        size={20}
+                        color={'#3f51b5'}
+                    />
+                )}
                 <ImageGallery
-                    images={this.state.images}
-                    getImageIdx={this.activeImageIdxHandler}
+                    images={images}
+                    getImageIdx={this.activeImageHandler}
                 >
-                    {this.state.loading ? (
+                    {loading ? (
                         <PropagateLoader
                             css={override}
                             size={20}
@@ -138,9 +152,9 @@ class App extends Component {
                         <Button onClick={this.getMoreImages} />
                     )}
                 </ImageGallery>
-                {this.state.activeModal && (
+                {activeModal && (
                     <Modal
-                        activeimage={this.state.activeImage}
+                        activeimage={activeImage}
                         onClick={this.modalCloseHandler}
                     />
                 )}
