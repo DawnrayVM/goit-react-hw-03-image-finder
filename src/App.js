@@ -164,6 +164,7 @@ class App extends Component {
                     <Modal
                         activeimage={activeImage}
                         onClick={this.modalCloseHandler}
+                        onKeydown={this.modalToggle}
                     />
                 )}
             </div>

@@ -1,4 +1,5 @@
 import { createUseStyles } from 'react-jss';
+import { useState, useEffect } from 'react';
 
 const useStyles = createUseStyles({
     overlay: {
@@ -22,12 +23,27 @@ const useStyles = createUseStyles({
     },
 });
 
-const Modal = ({ activeimage, onClick }) => {
+const Modal = ({ activeimage, onClick, onKeydown }) => {
     const classes = useStyles();
+    const closeModal = e => {
+        if (e.code === 'Escape') {
+            onKeydown();
+        }
+    };
+    useEffect(() => {
+        // console.log('modal did mount');
+        window.addEventListener('keydown', closeModal);
+    }, []);
+    useEffect(() => {
+        return () => {
+            // console.log('will unmount');
+            window.removeEventListener('keydown', closeModal);
+        };
+    }, []);
     return (
         <div className={classes.overlay} onClick={onClick}>
             <div className={classes.modal}>
-                <img src={activeimage} alt="asd" />
+                <img src={activeimage} alt="Photo from Pixabay" />
             </div>
         </div>
     );
